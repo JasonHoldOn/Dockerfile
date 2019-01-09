@@ -9,7 +9,8 @@ RUN docker-php-ext-install pdo_mysql && \
     docker-php-ext-install soap && \
     docker-php-ext-install bcmath && \
     docker-php-ext-install gd && \
-    docker-php-ext-install zip
+    docker-php-ext-install zip && \
+    docker-php-ext-install sockets
 RUN php -r "copy('https://install.phpcomposer.com/installer', 'composer-setup.php');" && \
     php composer-setup.php && php -r "unlink('composer-setup.php');" && \
     mv composer.phar /usr/local/bin/composer && chmod +x /usr/local/bin/composer && \
