@@ -1,0 +1,65 @@
+version: "2.1"
+services:
+  kong-migrations:
+    container_name: "kong-migrations"
+    image: ${KONG_TAG:-kong:latest}
+    command: kong migrations bootstrap
+    environment:
+      - KONG_DATABASE=postgres
+      - KONG_PG_HOST=kong-database
+      - KONG_PG_DATABASE=${DB_DATABASE:-kong}
+      - KONG_PG_USER=${DB_USER:-kong}
+      - KONG_PG_PASSWORD=${DB_PASSWD:-kong}
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    networks:
+      - kong-net
+
+  kong:
+    container_name: "kong"
+    image: ${KONG_TAG:-kong:latest}
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_DATABASE: ${DB_DATABASE:-kong}
+      KONG_PG_USER: ${DB_USER:-kong}
+      KONG_PG_PASSWORD: ${DB_PASSWD:-kong}
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    ports:
+      - "8000:8000/tcp"
+      - "8001:8001/tcp"
+      - "8443:8443/tcp"
+      - "8444:8444/tcp"
+    networks:
+      - kong-net
+
+  kong-database:
+    container_name: "kong-database"
+    image: ${POSTGRES_TAG:-postgres:latest}
+    environment:
+      - POSTGRES_USER=${DB_USER:-kong}
+      - POSTGRES_DB=${DB_DATABASE:-kong}
+      - POSTGRES_PASSWORD=${DB_PASSWD:-kong}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-kong}"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    networks:
+      - kong-net
+    expose:
+      - 5432
+networks:
+  kong-net:
