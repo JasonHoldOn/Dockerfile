@@ -11,6 +11,8 @@ RUN docker-php-ext-install pdo_mysql && \
     docker-php-ext-install gd && \
     docker-php-ext-install zip && \
     docker-php-ext-install sockets && \
+    docker-php-ext-install pcntl && \
+    docker-php-ext-install posix && \
     cd /usr/src && \
     wget https://github.com/swoole/swoole-src/archive/v4.3.3.tar.gz && \
     tar -xzf v4.3.3.tar.gz && \
